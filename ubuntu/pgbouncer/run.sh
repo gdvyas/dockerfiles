@@ -10,6 +10,13 @@ PG_ENV_POSTGRESQL_MAX_CLIENT_CONN=${PG_ENV_POSTGRESQL_MAX_CLIENT_CONN:-}
 PG_ENV_POSTGRESQL_DEFAULT_POOL_SIZE=${PG_ENV_POSTGRESQL_DEFAULT_POOL_SIZE:-}
 PG_ENV_POSTGRESQL_SERVER_IDLE_TIMEOUT=${PG_ENV_POSTGRESQL_SERVER_IDLE_TIMEOUT:-}
 
+PG_ENV_IS_LOG_ENABLE=${PG_ENV_IS_LOG_ENABLE:-}
+PG_LOG_FILE_PATH_ENTRY=""
+
+if [ "PG_ENV_IS_LOG_ENABLE" == 1 ]; then
+        ${PG_LOG_FILE_PATH_ENTRY}="logfile = /var/log/postgresql/pgbouncer.log"
+fi
+
 if [ ! -f /etc/pgbouncer/pgbconf.ini ]
 then
 cat << EOF > /etc/pgbouncer/pgbconf.ini
@@ -17,7 +24,7 @@ cat << EOF > /etc/pgbouncer/pgbconf.ini
 * = host=${PG_PORT_5432_TCP_ADDR} port=${PG_PORT_5432_TCP_PORT}
 
 [pgbouncer]
-logfile = /var/log/postgresql/pgbouncer.log
+${PG_LOG_FILE_PATH_ENTRY}
 pidfile = /var/run/postgresql/pgbouncer.pid
 ;listen_addr = *
 listen_addr = 0.0.0.0
@@ -44,5 +51,7 @@ chown -R postgres:postgres /etc/pgbouncer
 chown root:postgres /var/log/postgresql
 chmod 1775 /var/log/postgresql
 chmod 640 /etc/pgbouncer/userlist.txt
+
+rm /var/run/postgresql/pgbouncer.pid
 
 /usr/sbin/pgbouncer -u postgres /etc/pgbouncer/pgbconf.ini
